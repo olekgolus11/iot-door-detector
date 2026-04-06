@@ -17,6 +17,13 @@ def get_float_env(name: str, default: float) -> float:
     return float(os.getenv(name, str(default)))
 
 
+def get_bool_env(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def with_basic_auth(url: str, username: str, password: str) -> str:
     if not url or not username:
         return url
@@ -77,4 +84,9 @@ class YoloPublisherConfig:
     enter_when: str = get_env("ENTER_WHEN", "negative_to_positive")
     line_start: str = get_env("LINE_START", "100,100")
     line_end: str = get_env("LINE_END", "540,100")
+    line_band_pixels: int = get_int_env("LINE_BAND_PIXELS", 80)
+    track_cooldown_frames: int = get_int_env("TRACK_COOLDOWN_FRAMES", 15)
+    crossing_point: str = get_env("YOLO_CROSSING_POINT", "bottom_center")
     publisher_id: str = get_env("PUBLISHER_ID", "camera-publisher")
+    debug_preview: bool = get_bool_env("YOLO_DEBUG_PREVIEW", False)
+    debug_log_detections: bool = get_bool_env("YOLO_DEBUG_LOG_DETECTIONS", True)

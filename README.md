@@ -96,9 +96,10 @@ The YOLO publisher uses a phone IP camera stream together with YOLO tracking.
    PYTHONPATH=. python3 -m backend.publisher_yolo.main
    ```
 
-`LINE_START` and `LINE_END` define the virtual doorway line. `ENTER_WHEN` controls which side change counts as an `enter`.
+`LINE_START` and `LINE_END` define the virtual doorway line. `LINE_BAND_PIXELS` widens that line into a more forgiving crossing zone, `YOLO_CROSSING_POINT` chooses whether crossing is measured from the person centroid or feet position, and `ENTER_WHEN` controls which side change counts as an `enter`.
 `.env.camera-publisher.example` is prefilled with the HTTP stream URL you already confirmed works in a browser.
 If your phone camera app uses HTTP Basic Auth, set `CAMERA_USERNAME` and `CAMERA_PASSWORD` in `.env.camera-publisher`. The publisher will inject those credentials into the stream URL automatically.
+Set `YOLO_DEBUG_PREVIEW=true` to open a local debug window that shows the live camera feed, YOLO boxes, track ids, centroids, and the configured crossing line. Press `q` in that window to stop the publisher.
 
 ## Testing
 Run the unit tests with:

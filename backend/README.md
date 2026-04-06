@@ -37,6 +37,12 @@ pip install -r backend/requirements-yolo.txt
 PYTHONPATH=. python3 -m backend.publisher_yolo.main
 ```
 
+For camera calibration, the YOLO publisher supports:
+- `LINE_START` and `LINE_END` for the virtual doorway line
+- `LINE_BAND_PIXELS` for a wider crossing zone
+- `YOLO_CROSSING_POINT=bottom_center` to track the feet position instead of the box center
+- `TRACK_COOLDOWN_FRAMES` to avoid duplicate events from one crossing
+
 ## Useful API Endpoints
 - `GET /api/control-state`
 - `PUT /api/control-state`
