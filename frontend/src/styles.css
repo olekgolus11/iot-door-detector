@@ -1,16 +1,18 @@
 :root {
   color-scheme: light;
-  --bg: #f2ebdc;
-  --surface: rgba(255, 250, 242, 0.88);
-  --surface-strong: #fffaf0;
-  --stroke: rgba(58, 49, 33, 0.12);
-  --text: #1f1a15;
-  --muted: #6e6254;
-  --accent: #157a68;
-  --accent-soft: rgba(21, 122, 104, 0.12);
-  --accent-2: #be5d36;
-  --accent-2-soft: rgba(190, 93, 54, 0.13);
-  --shadow: 0 28px 70px rgba(54, 38, 19, 0.12);
+  --bg: #f4f2ee;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-strong: #ffffff;
+  --surface-muted: #f7f5f1;
+  --stroke: rgba(43, 51, 58, 0.12);
+  --stroke-strong: rgba(43, 51, 58, 0.2);
+  --text: #182027;
+  --muted: #66707a;
+  --accent: #426f67;
+  --accent-soft: rgba(66, 111, 103, 0.1);
+  --accent-2: #7b6254;
+  --accent-2-soft: rgba(123, 98, 84, 0.1);
+  --shadow: 0 18px 45px rgba(34, 40, 46, 0.07);
 }
 
 * {
@@ -24,12 +26,10 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "IBM Plex Sans", sans-serif;
+  font-family: "Public Sans", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(21, 122, 104, 0.16), transparent 24%),
-    radial-gradient(circle at 80% 20%, rgba(190, 93, 54, 0.14), transparent 24%),
-    linear-gradient(180deg, #f7f0e3 0%, #efe2cd 100%);
+    linear-gradient(180deg, #f7f6f3 0%, #efede9 100%);
 }
 
 button,
@@ -46,7 +46,7 @@ select {
 }
 
 .app-shell {
-  width: min(1260px, calc(100vw - 32px));
+  width: min(1240px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 24px 0 56px;
 }
@@ -54,7 +54,8 @@ select {
 .shell-nav,
 .hero,
 .panel,
-.paused-banner {
+.paused-banner,
+.metric-card {
   box-shadow: var(--shadow);
 }
 
@@ -63,27 +64,28 @@ select {
   justify-content: space-between;
   gap: 24px;
   align-items: flex-start;
-  padding: 28px;
-  border-radius: 28px;
-  background:
-    linear-gradient(145deg, rgba(255, 249, 239, 0.96), rgba(251, 241, 225, 0.82));
+  padding: 24px 26px;
+  border: 1px solid var(--stroke);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .shell-nav h1,
 .hero h2 {
   margin: 0;
-  font-family: "Instrument Serif", serif;
-  font-weight: 400;
-  line-height: 0.94;
+  font-family: "Newsreader", serif;
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
 }
 
 .shell-nav h1 {
-  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
 }
 
 .hero h2 {
-  font-size: clamp(2rem, 4.5vw, 4rem);
-  max-width: 12ch;
+  font-size: clamp(1.9rem, 4vw, 3.25rem);
+  max-width: 14ch;
 }
 
 .eyebrow,
@@ -93,7 +95,10 @@ th,
 td,
 .recent-event span,
 .filter-field span,
-.nav-pills a {
+.nav-pills a,
+.chart-description,
+.axis-label,
+.axis-tick {
   font-family: "IBM Plex Mono", monospace;
 }
 
@@ -113,9 +118,10 @@ td,
 .nav-pills {
   display: inline-flex;
   gap: 8px;
-  padding: 8px;
+  padding: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .nav-pills a {
@@ -123,42 +129,45 @@ td,
   color: var(--muted);
   padding: 10px 14px;
   border-radius: 999px;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
 .nav-pills a.active {
   background: var(--text);
-  color: #fff8ee;
+  color: #f8f7f4;
 }
 
 .status-pill {
   margin: 0;
   padding: 10px 14px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  border: 1px solid var(--stroke);
+  background: var(--surface-muted);
+  color: var(--muted);
 }
 
 .dashboard-page,
 .debug-page {
   display: grid;
-  gap: 20px;
+  gap: 18px;
   margin-top: 20px;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: 1.4fr 0.8fr;
+  grid-template-columns: 1.45fr 0.85fr;
   gap: 24px;
-  padding: 28px;
-  border-radius: 28px;
-  background:
-    linear-gradient(120deg, rgba(255, 250, 242, 0.96), rgba(251, 240, 221, 0.88));
+  padding: 26px;
+  border-radius: 24px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .hero-copy {
-  max-width: 64ch;
+  max-width: 62ch;
   color: var(--muted);
-  font-size: 1.04rem;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .hero-occupancy,
@@ -167,17 +176,17 @@ td,
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
-  padding: 22px;
-  border-radius: 24px;
-  background:
-    linear-gradient(145deg, rgba(21, 122, 104, 0.11), rgba(255, 255, 255, 0.84));
+  gap: 10px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--stroke);
+  background: var(--surface-muted);
 }
 
 .occupancy-value {
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(5rem, 12vw, 7.5rem);
-  line-height: 0.85;
+  font-family: "Newsreader", serif;
+  font-size: clamp(4.8rem, 11vw, 7rem);
+  line-height: 0.88;
 }
 
 .hero-mode {
@@ -190,7 +199,7 @@ td,
 .chart-grid,
 .debug-grid {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .metric-strip {
@@ -213,16 +222,11 @@ td,
 .metric-card,
 .panel,
 .paused-banner {
-  padding: 22px;
-  border-radius: 24px;
+  padding: 20px;
+  border-radius: 20px;
   border: 1px solid var(--stroke);
   background: var(--surface);
-  backdrop-filter: blur(10px);
-}
-
-.metric-card {
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.84), rgba(250, 242, 231, 0.92));
+  backdrop-filter: blur(8px);
 }
 
 .metric-card span,
@@ -235,8 +239,9 @@ td,
 
 .metric-card strong {
   display: block;
-  margin-top: 10px;
-  font-size: 2.4rem;
+  margin-top: 8px;
+  font-size: 2.1rem;
+  font-weight: 600;
 }
 
 .panel-header {
@@ -248,18 +253,20 @@ td,
 
 .panel-header h2 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .control-grid {
   display: grid;
-  gap: 16px;
-  margin-top: 18px;
+  gap: 14px;
+  margin-top: 16px;
 }
 
 .control-section {
-  padding: 16px;
-  border-radius: 20px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--stroke);
   background: rgba(255, 255, 255, 0.72);
 }
 
@@ -272,15 +279,17 @@ td,
 .segmented button,
 .baseline-form button {
   cursor: pointer;
-  padding: 12px 16px;
-  border-radius: 16px;
+  padding: 11px 14px;
+  border-radius: 14px;
   background: transparent;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
 .segmented button.active,
 .baseline-form button {
   background: var(--text);
-  color: #fff9f0;
+  border-color: var(--text);
+  color: #f7f6f3;
 }
 
 .baseline-form {
@@ -294,8 +303,8 @@ td,
 .filter-field select {
   min-height: 44px;
   padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.84);
+  border-radius: 12px;
+  background: #ffffff;
 }
 
 .status-list {
@@ -314,11 +323,20 @@ td,
 
 .paused-banner {
   color: var(--accent-2);
-  background: linear-gradient(135deg, rgba(190, 93, 54, 0.14), rgba(255, 248, 239, 0.95));
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(123, 98, 84, 0.22);
 }
 
 .chart-shell {
-  margin-top: 18px;
+  margin-top: 16px;
+}
+
+.chart-description {
+  margin: 0 0 10px;
+  font-size: 0.79rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .line-chart {
@@ -326,14 +344,29 @@ td,
   height: auto;
 }
 
+.axis-grid {
+  stroke: rgba(43, 51, 58, 0.1);
+  stroke-dasharray: 4 6;
+}
+
+.axis-line {
+  stroke: rgba(43, 51, 58, 0.18);
+}
+
+.axis-tick,
+.axis-label {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
 .chart-label-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
   gap: 8px;
   margin-top: 10px;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
+  padding-left: 60px;
 }
 
 .bar-list,
@@ -341,7 +374,7 @@ td,
 .recent-event-list {
   display: grid;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .bar-row {
@@ -366,18 +399,19 @@ td,
 
 .bar.enter,
 .door-bar.enter {
-  background: linear-gradient(90deg, var(--accent), #35a88a);
+  background: linear-gradient(90deg, var(--accent), #5a8c83);
 }
 
 .bar.leave,
 .door-bar.leave {
-  background: linear-gradient(90deg, var(--accent-2), #df885b);
+  background: linear-gradient(90deg, var(--accent-2), #9a7d6e);
 }
 
 .door-chart-row,
 .recent-event {
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--stroke);
   background: rgba(255, 255, 255, 0.74);
 }
 
@@ -399,11 +433,11 @@ td,
 }
 
 .recent-event.enter {
-  border-left: 5px solid var(--accent);
+  border-left: 4px solid var(--accent);
 }
 
 .recent-event.leave {
-  border-left: 5px solid var(--accent-2);
+  border-left: 4px solid var(--accent-2);
 }
 
 .recent-event div {
@@ -412,7 +446,7 @@ td,
 }
 
 .debug-state-card strong {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
 }
 
 .filter-grid {
@@ -463,5 +497,9 @@ td {
 
   .recent-event {
     grid-template-columns: 1fr;
+  }
+
+  .chart-label-row {
+    padding-left: 0;
   }
 }

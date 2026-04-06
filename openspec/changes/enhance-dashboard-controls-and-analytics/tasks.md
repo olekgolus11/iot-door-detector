@@ -42,3 +42,7 @@
 - [ ] Manually verify switching between mock mode and camera mode.
 - [ ] Manually verify baseline occupancy changes and chart updates.
 - [x] Update the setup and demo documentation with the new control and analytics workflow.
+
+Manual verification note:
+- Mock mode has been exercised by the user.
+- Real camera mode is still pending verification.

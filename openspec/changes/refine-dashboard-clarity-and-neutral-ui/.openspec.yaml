@@ -1,0 +1,10 @@
+schema: spec-driven
+change:
+  name: refine-dashboard-clarity-and-neutral-ui
+  title: Dashboard Clarity And Neutral UI
+  artifacts:
+    proposal: proposal.md
+    design: design.md
+    tasks: tasks.md
+  applyRequires:
+    - tasks

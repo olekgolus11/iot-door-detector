@@ -62,6 +62,8 @@ Use the dashboard routes:
 - `#/` for the main operator dashboard
 - `#/debug/events` for raw retained and rejected event inspection
 
+The main occupancy trend chart now includes a labeled Y axis and visible scale values so the plotted growth is readable as people currently counted in the room.
+
 ## API Endpoints
 - `GET /health`
 - `GET /api/occupancy`

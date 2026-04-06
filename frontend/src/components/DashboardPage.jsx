@@ -14,10 +14,10 @@ export function DashboardPage({
       <section className="hero hero-dashboard">
         <div className="hero-copy-wrap">
           <p className="eyebrow">Live operator view</p>
-          <h2>Charts first, raw logs second, controls always visible.</h2>
+          <h2>Clear live monitoring for a room that changes minute by minute.</h2>
           <p className="hero-copy">
-            This view is designed for demoing the system in class: the occupancy story stays
-            readable, mode changes are visible, and every chart updates from the same backend
+            The dashboard keeps the data legible during demos: the room count is obvious, chart
+            scales explain themselves, and every live panel is anchored to the same backend
             snapshot.
           </p>
         </div>
@@ -93,7 +93,7 @@ export function DashboardPage({
         <article className="panel">
           <div className="panel-header">
             <h2>Occupancy trend</h2>
-            <span>Since the latest baseline reset</span>
+            <span>People currently in the room</span>
           </div>
           <OccupancyTrendChart data={summary.occupancy_timeline} />
         </article>
@@ -101,7 +101,7 @@ export function DashboardPage({
         <article className="panel">
           <div className="panel-header">
             <h2>Entries vs leaves</h2>
-            <span>Grouped by time bucket</span>
+            <span>Movement by recent time bucket</span>
           </div>
           <EntryLeaveBars data={summary.entries_vs_leaves} />
         </article>
@@ -111,7 +111,7 @@ export function DashboardPage({
         <article className="panel">
           <div className="panel-header">
             <h2>Per-door comparison</h2>
-            <span>Live totals update from SSE summaries</span>
+            <span>Live accepted totals by door</span>
           </div>
           <DoorComparisonChart data={summary.per_door} />
         </article>

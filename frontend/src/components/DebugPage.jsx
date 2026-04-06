@@ -49,10 +49,10 @@ export function DebugPage({
       <section className="hero hero-debug">
         <div>
           <p className="eyebrow">Debug workspace</p>
-          <h2>Raw telemetry, rejected traffic, and control-state inspection.</h2>
+          <h2>Raw telemetry and control-state inspection in one quieter workspace.</h2>
           <p className="hero-copy">
-            This page is intentionally operational. Use it to inspect door-level payloads,
-            rejected events, and filter exact slices while keeping the main dashboard clean.
+            Use this page when you need detail rather than presentation: door-level payloads,
+            rejected events, and exact filtered slices without overloading the main dashboard.
           </p>
         </div>
         <div className="debug-state-card">
