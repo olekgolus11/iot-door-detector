@@ -1,93 +1,139 @@
-import { useEffect, useState } from "react";
-import { OccupancyCard } from "./components/OccupancyCard";
-import { EventFeed } from "./components/EventFeed";
-import { EventTable } from "./components/EventTable";
-import { SummaryPanel } from "./components/SummaryPanel";
+import { useEffect, useMemo, useState } from "react";
+import { ShellNav } from "./components/ShellNav";
+import { DashboardPage } from "./components/DashboardPage";
+import { DebugPage } from "./components/DebugPage";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-export default function App() {
-  const [occupancy, setOccupancy] = useState(0);
-  const [events, setEvents] = useState([]);
-  const [historyEvents, setHistoryEvents] = useState([]);
-  const [summary, setSummary] = useState({ total_enters: 0, total_leaves: 0, per_door: [] });
-  const [status, setStatus] = useState("Connecting to live data...");
-  const [filters, setFilters] = useState({ doorId: "", since: "" });
+const emptySummary = {
+  occupancy: 0,
+  total_enters: 0,
+  total_leaves: 0,
+  per_door: [],
+  entries_vs_leaves: [],
+  occupancy_timeline: [],
+  system_status: {
+    accepted_events: 0,
+    rejected_events: 0,
+    collection_enabled: true,
+    active_source_mode: "mock",
+  },
+  control_state: {
+    collection_enabled: true,
+    active_source_mode: "mock",
+    baseline_occupancy: 0,
+    baseline_updated_at: null,
+    updated_at: null,
+  },
+};
 
-  async function loadHistory(active = true, nextFilters = filters) {
-    const query = new URLSearchParams({ limit: "100" });
-    if (nextFilters.doorId) {
-      query.set("door_id", nextFilters.doorId);
-    }
-    if (nextFilters.since) {
-      query.set("since", nextFilters.since);
-    }
+const defaultFilters = {
+  doorId: "",
+  direction: "",
+  sourceType: "",
+  since: "",
+  until: "",
+};
 
-    const eventsRes = await fetch(`${API_URL}/api/events?${query.toString()}`);
-    if (!active) {
-      return;
-    }
+function getRoute() {
+  return window.location.hash === "#/debug/events" ? "debug" : "dashboard";
+}
 
-    const eventsPayload = await eventsRes.json();
-    setHistoryEvents(eventsPayload.events ?? []);
+function buildQuery(filters, limit = 150) {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (filters.doorId) query.set("door_id", filters.doorId);
+  if (filters.direction) query.set("direction", filters.direction);
+  if (filters.sourceType) query.set("source_type", filters.sourceType);
+  if (filters.since) query.set("since", filters.since);
+  if (filters.until) query.set("until", filters.until);
+  return query.toString();
+}
+
+async function fetchJson(path) {
+  const response = await fetch(`${API_URL}${path}`);
+  if (!response.ok) {
+    throw new Error(`Request failed: ${path}`);
   }
+  return response.json();
+}
+
+export default function App() {
+  const [route, setRoute] = useState(getRoute);
+  const [summary, setSummary] = useState(emptySummary);
+  const [controlState, setControlState] = useState(emptySummary.control_state);
+  const [recentEvents, setRecentEvents] = useState([]);
+  const [debugEvents, setDebugEvents] = useState([]);
+  const [rejectedEvents, setRejectedEvents] = useState([]);
+  const [health, setHealth] = useState({ status: "booting" });
+  const [statusText, setStatusText] = useState("Connecting to subscriber API...");
+  const [controlStatus, setControlStatus] = useState("Control plane ready.");
+  const [debugFilters, setDebugFilters] = useState(defaultFilters);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const syncRoute = () => setRoute(getRoute());
+    window.addEventListener("hashchange", syncRoute);
+    syncRoute();
+    return () => window.removeEventListener("hashchange", syncRoute);
+  }, []);
 
   useEffect(() => {
     let active = true;
 
-    async function loadInitialData() {
+    async function loadInitial() {
       try {
-        const [occupancyRes, eventsRes, summaryRes] = await Promise.all([
-          fetch(`${API_URL}/api/occupancy`),
-          fetch(`${API_URL}/api/events?limit=25`),
-          fetch(`${API_URL}/api/summary`),
+        const [summaryPayload, controlPayload, healthPayload, recentPayload] = await Promise.all([
+          fetchJson("/api/summary"),
+          fetchJson("/api/control-state"),
+          fetchJson("/health"),
+          fetchJson("/api/events?limit=8"),
         ]);
 
-        if (!active) {
-          return;
-        }
+        if (!active) return;
 
-        const occupancyPayload = await occupancyRes.json();
-        const eventsPayload = await eventsRes.json();
-        const summaryPayload = await summaryRes.json();
-
-        setOccupancy(occupancyPayload.occupancy ?? 0);
-        setEvents(eventsPayload.events ?? []);
         setSummary(summaryPayload);
-        await loadHistory(active, filters);
-        setStatus("Live updates connected.");
+        setControlState(controlPayload);
+        setHealth(healthPayload);
+        setRecentEvents(recentPayload.events ?? []);
+        setStatusText("Live dashboard connected.");
       } catch (error) {
-        setStatus("Waiting for the API. Start the subscriber service to see live data.");
+        if (active) {
+          setStatusText("Waiting for the subscriber API. Start the backend to unlock live analytics.");
+        }
       }
     }
 
-    loadInitialData();
+    loadInitial();
 
     const source = new EventSource(`${API_URL}/api/stream`);
     source.onmessage = (message) => {
       const payload = JSON.parse(message.data);
-      if (payload.type === "snapshot") {
-        setOccupancy(payload.occupancy ?? 0);
-        setSummary(payload.summary ?? summary);
-        return;
+      if (payload.summary) {
+        setSummary(payload.summary);
       }
-
-      if (payload.type === "door_event") {
-        setOccupancy(payload.occupancy ?? 0);
-        setEvents((current) => [payload.event, ...current].slice(0, 50));
-        setSummary((current) => ({
-          ...current,
-          occupancy: payload.occupancy ?? 0,
-          total_enters:
-            current.total_enters + (payload.event.direction === "enter" ? 1 : 0),
-          total_leaves:
-            current.total_leaves + (payload.event.direction === "leave" ? 1 : 0),
-        }));
+      if (payload.control_state) {
+        setControlState(payload.control_state);
       }
-      setStatus("Receiving live MQTT-backed updates.");
+      if (payload.event) {
+        setRecentEvents((current) => [payload.event, ...current].slice(0, 8));
+      }
+      if (payload.rejected_event) {
+        setRejectedEvents((current) => [payload.rejected_event, ...current].slice(0, 20));
+      }
+      setHealth((current) => ({
+        ...current,
+        status: "live",
+        system_status: payload.summary?.system_status ?? current.system_status,
+      }));
+      setStatusText(
+        payload.type === "control_state_updated"
+          ? "Control state updated and broadcast live."
+          : "Realtime analytics are flowing."
+      );
+      setRefreshKey((value) => value + 1);
     };
     source.onerror = () => {
-      setStatus("Realtime connection lost. Retrying SSE stream...");
+      setStatusText("Realtime stream interrupted. Retrying SSE connection...");
     };
 
     return () => {
@@ -99,36 +145,75 @@ export default function App() {
   useEffect(() => {
     let active = true;
 
-    loadHistory(active, filters).catch(() => {
-      setStatus("Historical log filters are waiting for the API.");
-    });
+    async function loadDebugData() {
+      try {
+        const [eventsPayload, rejectedPayload] = await Promise.all([
+          fetchJson(`/api/events?${buildQuery(debugFilters, 150)}`),
+          fetchJson(`/api/rejected-events?${buildQuery(debugFilters, 150)}`),
+        ]);
+        if (!active) return;
+        setDebugEvents(eventsPayload.events ?? []);
+        setRejectedEvents(rejectedPayload.events ?? []);
+      } catch (error) {
+        if (active) {
+          setStatusText("Debug tables are waiting for the API.");
+        }
+      }
+    }
 
+    loadDebugData();
     return () => {
       active = false;
     };
-  }, [filters]);
+  }, [debugFilters, refreshKey, route]);
+
+  async function updateControlState(partial) {
+    setControlStatus("Saving control changes...");
+    try {
+      const response = await fetch(`${API_URL}/api/control-state`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(partial),
+      });
+      if (!response.ok) {
+        throw new Error("Unable to update control state");
+      }
+      const updated = await response.json();
+      setControlState(updated);
+      setControlStatus("Control state saved. Waiting for live snapshot...");
+    } catch (error) {
+      setControlStatus("Control update failed. Check whether the subscriber API is running.");
+    }
+  }
+
+  const availableDoors = useMemo(
+    () => summary.per_door.map((door) => door.door_id),
+    [summary.per_door]
+  );
 
   return (
     <main className="app-shell">
-      <section className="hero">
-        <p className="eyebrow">IoT Door Detector</p>
-        <h1>Realtime room occupancy from MQTT doorway events</h1>
-        <p className="hero-copy">
-          This dashboard shows the current room count, a live feed of enter and leave events,
-          and retained history from the central subscriber service.
-        </p>
-        <p className="status-pill">{status}</p>
-      </section>
-
-      <section className="dashboard-grid">
-        <OccupancyCard occupancy={occupancy} />
-        <SummaryPanel summary={summary} />
-      </section>
-
-      <section className="content-grid">
-        <EventFeed events={events.slice(0, 8)} />
-        <EventTable events={historyEvents} filters={filters} onFiltersChange={setFilters} />
-      </section>
+      <ShellNav route={route} statusText={statusText} />
+      {route === "dashboard" ? (
+        <DashboardPage
+          summary={summary}
+          controlState={controlState}
+          recentEvents={recentEvents}
+          controlStatus={controlStatus}
+          health={health}
+          onUpdateControlState={updateControlState}
+        />
+      ) : (
+        <DebugPage
+          summary={summary}
+          controlState={controlState}
+          filters={debugFilters}
+          events={debugEvents}
+          rejectedEvents={rejectedEvents}
+          availableDoors={availableDoors}
+          onFiltersChange={setDebugFilters}
+        />
+      )}
     </main>
   );
 }

@@ -42,6 +42,7 @@ class MockPublisherConfig:
     min_interval_seconds: float = get_float_env("MOCK_MIN_INTERVAL", 0.75)
     max_interval_seconds: float = get_float_env("MOCK_MAX_INTERVAL", 2.5)
     seed: int = get_int_env("MOCK_SEED", 7)
+    publisher_id: str = get_env("PUBLISHER_ID", "mock-publisher")
 
 
 @dataclass(frozen=True)
@@ -54,4 +55,4 @@ class YoloPublisherConfig:
     enter_when: str = get_env("ENTER_WHEN", "negative_to_positive")
     line_start: str = get_env("LINE_START", "100,100")
     line_end: str = get_env("LINE_END", "540,100")
-
+    publisher_id: str = get_env("PUBLISHER_ID", "camera-publisher")

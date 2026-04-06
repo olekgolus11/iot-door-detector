@@ -119,6 +119,8 @@ def run() -> None:
                     timestamp=utc_now_iso(),
                     door_id=config.door_id,
                     direction=crossing.direction,
+                    source_type="camera",
+                    publisher_id=config.publisher_id,
                 )
                 client.publish(topic_for_door(config.door_id), event.to_json())
                 LOGGER.info("Published %s for track=%s centroid=%s", event.to_json(), track_id, centroid)
@@ -130,4 +132,3 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
-

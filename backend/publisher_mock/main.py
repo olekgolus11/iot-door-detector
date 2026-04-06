@@ -49,6 +49,13 @@ def run() -> None:
         while True:
             door_id = rng.choice(config.door_ids)
             event = build_next_event(state, door_id, rng)
+            event = DoorEvent(
+                timestamp=event.timestamp,
+                door_id=event.door_id,
+                direction=event.direction,
+                source_type="mock",
+                publisher_id=config.publisher_id,
+            )
             client.publish(topic_for_door(event.door_id), event.to_json())
             LOGGER.info("Published %s", event.to_json())
             time.sleep(rng.uniform(config.min_interval_seconds, config.max_interval_seconds))
@@ -59,4 +66,3 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
-

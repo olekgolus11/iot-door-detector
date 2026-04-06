@@ -1,0 +1,10 @@
+schema: spec-driven
+change:
+  name: enhance-dashboard-controls-and-analytics
+  title: Dashboard Controls And Analytics
+  artifacts:
+    proposal: proposal.md
+    design: design.md
+    tasks: tasks.md
+  applyRequires:
+    - tasks

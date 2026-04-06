@@ -1,13 +1,13 @@
 # iot-door-detector
 
-IoT study project for counting how many people are in a room by detecting doorway crossings, publishing those events over MQTT, aggregating them in Python, and showing the results in a React dashboard.
+IoT study project for counting how many people are in a room by detecting doorway crossings, publishing those events over MQTT, aggregating them in Python, and showing the results in a React operator dashboard.
 
 ## Architecture
 - `backend/publisher_yolo`: reads a phone IP camera stream and publishes `enter` or `leave` events.
 - `backend/publisher_mock`: generates semi-random doorway events for local demos and testing.
-- `backend/subscriber_api`: subscribes to MQTT, stores events in SQLite, computes occupancy, and serves REST plus SSE.
+- `backend/subscriber_api`: subscribes to MQTT, stores events in SQLite, computes occupancy, applies operator control state, and serves REST plus SSE.
 - `docker/mosquitto`: local MQTT broker configuration.
-- `frontend`: React dashboard for realtime occupancy, live feed, and retained logs.
+- `frontend`: React dashboard with charts, operator controls, and a separate debug/events page.
 
 ## Event Contract
 Every doorway event is a JSON object:
@@ -16,11 +16,21 @@ Every doorway event is a JSON object:
 {
   "timestamp": "2026-04-06T18:00:00Z",
   "door_id": "door-a",
-  "direction": "enter"
+  "direction": "enter",
+  "source_type": "mock",
+  "publisher_id": "mock-publisher"
 }
 ```
 
 MQTT topics follow `doors/<door_id>/events`.
+
+## Operator Controls
+The subscriber maintains a control state that the dashboard can update live:
+- `collection_enabled`: start or stop accepting events into occupancy and analytics
+- `active_source_mode`: choose between `mock` and `camera`
+- `baseline_occupancy`: set the counter baseline directly for demo setup
+
+Events that arrive while collection is paused or from the inactive source are retained as rejected debug records instead of changing the counter.
 
 ## Quick Start
 ### Backend only
@@ -48,10 +58,17 @@ The default services are:
 - Subscriber API on `http://localhost:8000`
 - React dashboard on `http://localhost:5173`
 
+Use the dashboard routes:
+- `#/` for the main operator dashboard
+- `#/debug/events` for raw retained and rejected event inspection
+
 ## API Endpoints
 - `GET /health`
 - `GET /api/occupancy`
-- `GET /api/events?limit=25&door_id=door-a`
+- `GET /api/control-state`
+- `PUT /api/control-state`
+- `GET /api/events?limit=25&door_id=door-a&direction=enter&source_type=mock`
+- `GET /api/rejected-events?limit=25`
 - `GET /api/summary`
 - `GET /api/stream`
 
@@ -81,10 +98,11 @@ The YOLO publisher uses a phone IP camera stream together with YOLO tracking.
 Run the unit tests with:
 
 ```bash
-PYTHONPATH=. python3 -m unittest discover -s backend/tests
+PYTHONPATH=. .venv/bin/python -m unittest discover -s backend/tests
 ```
 
 ## Notes
 - Occupancy is clamped at zero so bad `leave` events do not make the count negative.
+- Realtime dashboard statistics now update from backend snapshots delivered over SSE, which fixes stale per-door totals on the client.
 - The first version is designed for one real camera feed, but the event contract and MQTT topics support multiple doors.
 - The frontend source is included, but this shell currently does not have `node` installed, so frontend install/build still needs a Node-enabled environment.
