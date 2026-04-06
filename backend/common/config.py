@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from urllib.parse import quote, urlsplit, urlunsplit
 
 
 def get_env(name: str, default: str) -> str:
@@ -14,6 +15,23 @@ def get_int_env(name: str, default: int) -> int:
 
 def get_float_env(name: str, default: float) -> float:
     return float(os.getenv(name, str(default)))
+
+
+def with_basic_auth(url: str, username: str, password: str) -> str:
+    if not url or not username:
+        return url
+
+    parts = urlsplit(url)
+    if "@" in parts.netloc:
+        return url
+
+    credentials = quote(username, safe="")
+    if password:
+        credentials = f"{credentials}:{quote(password, safe='')}"
+
+    return urlunsplit(
+        (parts.scheme, f"{credentials}@{parts.netloc}", parts.path, parts.query, parts.fragment)
+    )
 
 
 @dataclass(frozen=True)
@@ -48,7 +66,11 @@ class MockPublisherConfig:
 @dataclass(frozen=True)
 class YoloPublisherConfig:
     mqtt: MqttConfig = MqttConfig(client_id=get_env("MQTT_CLIENT_ID", "publisher-yolo"))
-    stream_url: str = get_env("CAMERA_STREAM_URL", "")
+    stream_url: str = with_basic_auth(
+        get_env("CAMERA_STREAM_URL", ""),
+        get_env("CAMERA_USERNAME", ""),
+        get_env("CAMERA_PASSWORD", ""),
+    )
     door_id: str = get_env("DOOR_ID", "door-a")
     model_name: str = get_env("YOLO_MODEL", "yolov8n.pt")
     confidence_threshold: float = get_float_env("YOLO_CONFIDENCE", 0.35)

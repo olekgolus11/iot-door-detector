@@ -81,20 +81,24 @@ The YOLO publisher uses a phone IP camera stream together with YOLO tracking.
    ```bash
    pip install -r backend/requirements-yolo.txt
    ```
-2. Set camera and calibration variables:
+2. Create a camera env file from the example:
    ```bash
-   export CAMERA_STREAM_URL="http://<phone-ip>:<port>/video"
-   export DOOR_ID="door-a"
-   export LINE_START="100,100"
-   export LINE_END="540,100"
-   export ENTER_WHEN="negative_to_positive"
+   cp .env.camera-publisher.example .env.camera-publisher
    ```
-3. Run the publisher:
+3. Load the camera and calibration variables:
+   ```bash
+   set -a
+   source .env.camera-publisher
+   set +a
+   ```
+4. Run the publisher:
    ```bash
    PYTHONPATH=. python3 -m backend.publisher_yolo.main
    ```
 
 `LINE_START` and `LINE_END` define the virtual doorway line. `ENTER_WHEN` controls which side change counts as an `enter`.
+`.env.camera-publisher.example` is prefilled with the HTTP stream URL you already confirmed works in a browser.
+If your phone camera app uses HTTP Basic Auth, set `CAMERA_USERNAME` and `CAMERA_PASSWORD` in `.env.camera-publisher`. The publisher will inject those credentials into the stream URL automatically.
 
 ## Testing
 Run the unit tests with:

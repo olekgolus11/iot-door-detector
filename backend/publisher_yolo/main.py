@@ -10,6 +10,7 @@ from backend.common.config import YoloPublisherConfig
 from backend.common.events import DoorEvent, topic_for_door, utc_now_iso
 
 LOGGER = logging.getLogger("publisher-yolo")
+HEARTBEAT_EVERY_FRAMES = 150
 
 Point = Tuple[float, float]
 
@@ -69,6 +70,20 @@ def run() -> None:
     if not config.stream_url:
         raise SystemExit("CAMERA_STREAM_URL is required for publisher-yolo")
 
+    LOGGER.info("Starting YOLO doorway publisher")
+    LOGGER.info(
+        "Configuration: door_id=%s publisher_id=%s mqtt=%s:%s model=%s confidence=%.2f enter_when=%s",
+        config.door_id,
+        config.publisher_id,
+        config.mqtt.host,
+        config.mqtt.port,
+        config.model_name,
+        config.confidence_threshold,
+        config.enter_when,
+    )
+    LOGGER.info("Crossing line: start=%s end=%s", config.line_start, config.line_end)
+    LOGGER.info("Opening camera stream: %s", config.stream_url)
+
     try:
         import cv2
         import paho.mqtt.client as mqtt
@@ -78,36 +93,62 @@ def run() -> None:
             "publisher-yolo requires opencv-python-headless, paho-mqtt, and ultralytics"
         ) from exc
 
+    LOGGER.info("Dependencies imported successfully")
+    LOGGER.info("Loading YOLO model: %s", config.model_name)
     model = YOLO(config.model_name)
+    LOGGER.info("YOLO model loaded")
     line_start = parse_point(config.line_start)
     line_end = parse_point(config.line_end)
     tracker = DoorCrossingTracker(line_start=line_start, line_end=line_end, enter_when=config.enter_when)
 
     client = mqtt.Client(client_id=config.mqtt.client_id)
+    LOGGER.info("Connecting to MQTT broker at %s:%s", config.mqtt.host, config.mqtt.port)
     client.connect(config.mqtt.host, config.mqtt.port, config.mqtt.keepalive)
     client.loop_start()
+    LOGGER.info("Connected to MQTT broker")
 
     capture = cv2.VideoCapture(config.stream_url)
     if not capture.isOpened():
         raise SystemExit(f"Unable to open camera stream: {config.stream_url}")
+    LOGGER.info("Camera stream opened successfully")
 
+    frame_count = 0
+    event_count = 0
+    first_frame_logged = False
     try:
         while True:
             ok, frame = capture.read()
             if not ok:
                 LOGGER.warning("Skipping frame because capture read failed")
                 continue
+            frame_count += 1
+
+            if not first_frame_logged:
+                LOGGER.info("Receiving frames: resolution=%sx%s", frame.shape[1], frame.shape[0])
+                LOGGER.info("Publisher is live and waiting for tracked doorway crossings")
+                first_frame_logged = True
 
             results = model.track(frame, persist=True, classes=[0], conf=config.confidence_threshold, verbose=False)
             if not results:
+                if frame_count % HEARTBEAT_EVERY_FRAMES == 0:
+                    LOGGER.info("Heartbeat: processed %s frames, published %s events", frame_count, event_count)
                 continue
 
             boxes = results[0].boxes
             if boxes is None or boxes.id is None:
+                if frame_count % HEARTBEAT_EVERY_FRAMES == 0:
+                    LOGGER.info("Heartbeat: processed %s frames, published %s events", frame_count, event_count)
                 continue
 
             ids = boxes.id.int().tolist()
             xyxy_list = boxes.xyxy.tolist()
+            if frame_count % HEARTBEAT_EVERY_FRAMES == 0:
+                LOGGER.info(
+                    "Heartbeat: processed %s frames, active_tracks=%s, published %s events",
+                    frame_count,
+                    len(ids),
+                    event_count,
+                )
             for track_id, xyxy in zip(ids, xyxy_list):
                 x1, y1, x2, y2 = xyxy
                 centroid = ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
@@ -123,11 +164,14 @@ def run() -> None:
                     publisher_id=config.publisher_id,
                 )
                 client.publish(topic_for_door(config.door_id), event.to_json())
+                event_count += 1
                 LOGGER.info("Published %s for track=%s centroid=%s", event.to_json(), track_id, centroid)
     finally:
+        LOGGER.info("Shutting down YOLO publisher")
         capture.release()
         client.loop_stop()
         client.disconnect()
+        LOGGER.info("MQTT disconnected and camera released")
 
 
 if __name__ == "__main__":

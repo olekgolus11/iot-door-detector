@@ -9,4 +9,6 @@ dist/
 coverage/
 node_modules/
 frontend/node_modules/
+.env.camera-publisher
+.env.camera-publisher.local
 
