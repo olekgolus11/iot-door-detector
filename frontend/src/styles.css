@@ -1,0 +1,259 @@
+:root {
+  color-scheme: light;
+  --bg: #f5efe2;
+  --panel: rgba(255, 252, 247, 0.86);
+  --panel-strong: #fffaf1;
+  --text: #1d1a15;
+  --muted: #655b4d;
+  --accent: #0d7c66;
+  --accent-soft: #d4efe8;
+  --warn: #c65d2e;
+  --shadow: 0 24px 60px rgba(55, 40, 18, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(13, 124, 102, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(198, 93, 46, 0.16), transparent 26%),
+    linear-gradient(180deg, #f8f3e8 0%, #efe5d2 100%);
+}
+
+button,
+input,
+table {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 40px 0 56px;
+}
+
+.hero {
+  padding: 28px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 250, 241, 0.94), rgba(250, 240, 221, 0.88));
+  box-shadow: var(--shadow);
+}
+
+.eyebrow,
+.status-pill,
+th,
+td,
+.event-card time,
+.panel-note,
+.panel-label {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 11ch;
+  font-size: clamp(2.6rem, 7vw, 5.5rem);
+  line-height: 0.96;
+}
+
+.hero-copy {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.dashboard-grid,
+.content-grid {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.dashboard-grid {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.content-grid {
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: start;
+}
+
+.panel {
+  padding: 22px;
+  border-radius: 24px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.occupancy-panel {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(135deg, rgba(13, 124, 102, 0.14), rgba(255, 255, 255, 0.9)),
+    var(--panel-strong);
+}
+
+.occupancy-value {
+  font-size: clamp(5rem, 16vw, 8rem);
+  line-height: 0.9;
+  margin: 12px 0;
+}
+
+.panel-label,
+.panel-note,
+.empty-state,
+.panel-header span,
+.door-row span:last-child {
+  color: var(--muted);
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.summary-stats div,
+.door-row,
+.event-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.summary-stats strong {
+  display: block;
+  font-size: 2.1rem;
+}
+
+.event-feed {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.event-card {
+  display: grid;
+  gap: 6px;
+}
+
+.event-card.enter {
+  border-left: 5px solid var(--accent);
+}
+
+.event-card.leave {
+  border-left: 5px solid var(--warn);
+}
+
+.event-direction {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.filter-row label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+}
+
+.filter-row input {
+  border: 1px solid rgba(101, 91, 77, 0.24);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+th,
+td {
+  padding: 12px 8px;
+  border-bottom: 1px solid rgba(101, 91, 77, 0.18);
+  text-align: left;
+}
+
+.door-breakdown {
+  display: grid;
+  gap: 12px;
+}
+
+.door-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid,
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell {
+    width: min(100vw - 20px, 1180px);
+    padding-top: 20px;
+  }
+
+  .hero {
+    padding: 22px;
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+}

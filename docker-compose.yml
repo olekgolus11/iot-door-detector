@@ -1,0 +1,60 @@
+services:
+  broker:
+    image: eclipse-mosquitto:2
+    container_name: iot-door-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  subscriber-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: iot-door-subscriber
+    depends_on:
+      - broker
+    environment:
+      MQTT_HOST: broker
+      MQTT_PORT: 1883
+      MQTT_CLIENT_ID: subscriber-api
+      DATABASE_PATH: /app/data/room_occupancy.db
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - subscriber_data:/app/data
+    command: ["python", "-m", "backend.subscriber_api.main"]
+
+  publisher-mock:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: iot-door-mock
+    depends_on:
+      - broker
+    environment:
+      MQTT_HOST: broker
+      MQTT_PORT: 1883
+      MQTT_CLIENT_ID: publisher-mock
+      MOCK_DOOR_IDS: door-a,door-b
+      MOCK_MIN_INTERVAL: 0.5
+      MOCK_MAX_INTERVAL: 2.0
+      MOCK_SEED: 7
+    command: ["python", "-m", "backend.publisher_mock.main"]
+
+  web-ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: iot-door-web
+    depends_on:
+      - subscriber-api
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+
+volumes:
+  subscriber_data:

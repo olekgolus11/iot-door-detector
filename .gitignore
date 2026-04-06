@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.db
+*.sqlite
+dist/
+coverage/
+node_modules/
+frontend/node_modules/
+

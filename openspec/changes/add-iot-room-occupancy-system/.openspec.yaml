@@ -1,0 +1,10 @@
+schema: spec-driven
+change:
+  name: add-iot-room-occupancy-system
+  title: IoT Room Occupancy System
+  artifacts:
+    proposal: proposal.md
+    design: design.md
+    tasks: tasks.md
+  applyRequires:
+    - tasks
