@@ -71,6 +71,53 @@ class EventStoreTests(unittest.TestCase):
             self.assertEqual(store.get_current_occupancy(), 4)
             self.assertEqual(store.get_control_state()["baseline_occupancy"], 4)
 
+    def test_clear_runtime_telemetry_preserves_control_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            db_path = f"{tmp_dir}/test.db"
+            store = EventStore(db_path)
+            store.update_control_state(
+                collection_enabled=False,
+                active_source_mode="camera",
+                baseline_occupancy=4,
+            )
+            store.update_control_state(collection_enabled=True)
+            store.add_event(
+                DoorEvent(
+                    timestamp="2026-04-06T18:00:00Z",
+                    door_id="door-a",
+                    direction="enter",
+                    source_type="camera",
+                )
+            )
+            store.update_control_state(collection_enabled=False)
+            store.add_event(
+                DoorEvent(
+                    timestamp="2026-04-06T18:01:00Z",
+                    door_id="door-a",
+                    direction="enter",
+                    source_type="camera",
+                )
+            )
+            store.record_error(payload="{bad-json", error_message="invalid json")
+
+            summary = store.clear_runtime_telemetry()
+            control_state = store.get_control_state()
+
+            self.assertEqual(summary["occupancy"], 0)
+            self.assertEqual(summary["total_enters"], 0)
+            self.assertEqual(summary["total_leaves"], 0)
+            self.assertEqual(summary["system_status"]["accepted_events"], 0)
+            self.assertEqual(summary["system_status"]["rejected_events"], 0)
+            self.assertEqual(store.list_events(), [])
+            self.assertEqual(store.list_rejected_events(), [])
+            self.assertFalse(control_state["collection_enabled"])
+            self.assertEqual(control_state["active_source_mode"], "camera")
+            self.assertEqual(control_state["baseline_occupancy"], 4)
+
+            with sqlite3.connect(db_path) as conn:
+                ingest_errors = conn.execute("SELECT COUNT(*) FROM ingest_errors").fetchone()[0]
+            self.assertEqual(ingest_errors, 0)
+
     def test_legacy_events_table_is_migrated_on_startup(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             db_path = f"{tmp_dir}/legacy.db"

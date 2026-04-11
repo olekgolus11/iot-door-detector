@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
-export function ControlPanel({ controlState, onUpdateControlState, status }) {
+export function ControlPanel({ controlState, onUpdateControlState, onClearDatabase, status }) {
   const [baselineInput, setBaselineInput] = useState(String(controlState.baseline_occupancy ?? 0));
+  const [confirmingClear, setConfirmingClear] = useState(false);
 
   useEffect(() => {
     setBaselineInput(String(controlState.baseline_occupancy ?? 0));
@@ -53,6 +54,9 @@ export function ControlPanel({ controlState, onUpdateControlState, status }) {
               Camera program
             </button>
           </div>
+          <p className="control-help">
+            Camera mode pauses the mock publisher; test publisher mode resumes it.
+          </p>
         </section>
 
         <section className="control-section baseline-section">
@@ -72,6 +76,44 @@ export function ControlPanel({ controlState, onUpdateControlState, status }) {
             />
             <button type="submit">Apply baseline</button>
           </form>
+        </section>
+
+        <section className="control-section clear-database-section">
+          <div>
+            <p className="panel-label">Demo reset</p>
+            <p className="control-help">
+              Clears accepted, rejected, and ingest-error records while keeping source and collection settings.
+            </p>
+          </div>
+          {confirmingClear ? (
+            <div className="clear-confirm-row">
+              <button
+                type="button"
+                className="clear-confirm-button"
+                onClick={() => {
+                  setConfirmingClear(false);
+                  onClearDatabase();
+                }}
+              >
+                Confirm clear
+              </button>
+              <button
+                type="button"
+                className="clear-cancel-button"
+                onClick={() => setConfirmingClear(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="clear-database-button"
+              onClick={() => setConfirmingClear(true)}
+            >
+              Clear database
+            </button>
+          )}
         </section>
       </div>
     </article>

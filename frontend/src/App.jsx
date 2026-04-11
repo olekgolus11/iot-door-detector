@@ -120,6 +120,11 @@ export default function App() {
       if (payload.rejected_event) {
         setRejectedEvents((current) => [payload.rejected_event, ...current].slice(0, 20));
       }
+      if (payload.type === "database_cleared") {
+        setRecentEvents([]);
+        setDebugEvents([]);
+        setRejectedEvents([]);
+      }
       setHealth((current) => ({
         ...current,
         status: "live",
@@ -128,7 +133,9 @@ export default function App() {
       setStatusText(
         payload.type === "control_state_updated"
           ? "Control state updated and broadcast live."
-          : "Realtime analytics are flowing."
+          : payload.type === "database_cleared"
+            ? "Database cleared. Telemetry history is ready for a fresh demo."
+            : "Realtime analytics are flowing."
       );
       setRefreshKey((value) => value + 1);
     };
@@ -180,9 +187,41 @@ export default function App() {
       }
       const updated = await response.json();
       setControlState(updated);
-      setControlStatus("Control state saved. Waiting for live snapshot...");
+      if (partial.active_source_mode === "camera") {
+        setControlStatus("Camera mode saved. Mock publisher pause command sent.");
+      } else if (partial.active_source_mode === "mock") {
+        setControlStatus("Mock mode saved. Test publishers can emit events again.");
+      } else {
+        setControlStatus("Control state saved. Waiting for live snapshot...");
+      }
     } catch (error) {
       setControlStatus("Control update failed. Check whether the subscriber API is running.");
+    }
+  }
+
+  async function clearDatabase() {
+    setControlStatus("Clearing telemetry database...");
+    try {
+      const response = await fetch(`${API_URL}/api/database/clear`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Unable to clear database");
+      }
+      const payload = await response.json();
+      if (payload.summary) {
+        setSummary(payload.summary);
+      }
+      if (payload.control_state) {
+        setControlState(payload.control_state);
+      }
+      setRecentEvents([]);
+      setDebugEvents([]);
+      setRejectedEvents([]);
+      setRefreshKey((value) => value + 1);
+      setControlStatus("Telemetry database cleared. Operator settings preserved.");
+    } catch (error) {
+      setControlStatus("Database clear failed. Check whether the subscriber API is running.");
     }
   }
 
@@ -202,6 +241,7 @@ export default function App() {
           controlStatus={controlStatus}
           health={health}
           onUpdateControlState={updateControlState}
+          onClearDatabase={clearDatabase}
         />
       ) : (
         <DebugPage

@@ -8,6 +8,7 @@ export function DashboardPage({
   controlStatus,
   health,
   onUpdateControlState,
+  onClearDatabase,
 }) {
   return (
     <div className="dashboard-page">
@@ -54,6 +55,7 @@ export function DashboardPage({
         <ControlPanel
           controlState={controlState}
           onUpdateControlState={onUpdateControlState}
+          onClearDatabase={onClearDatabase}
           status={controlStatus}
         />
         <article className="panel status-panel">

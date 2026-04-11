@@ -235,6 +235,15 @@ class EventStore:
                 (payload, error_message),
             )
 
+    def clear_runtime_telemetry(self) -> Dict[str, Any]:
+        with self._connect() as conn:
+            conn.execute("DELETE FROM events")
+            conn.execute("DELETE FROM rejected_events")
+            conn.execute("DELETE FROM ingest_errors")
+            conn.execute("UPDATE state SET value = 0 WHERE key = 'occupancy'")
+
+        return self.get_summary()
+
     def record_rejected_event(
         self,
         payload: str,

@@ -277,7 +277,10 @@ td,
 }
 
 .segmented button,
-.baseline-form button {
+.baseline-form button,
+.clear-database-button,
+.clear-confirm-button,
+.clear-cancel-button {
   cursor: pointer;
   padding: 11px 14px;
   border-radius: 14px;
@@ -305,6 +308,44 @@ td,
   padding: 10px 12px;
   border-radius: 12px;
   background: #ffffff;
+}
+
+.clear-database-section {
+  display: grid;
+  gap: 12px;
+  border-color: rgba(142, 62, 48, 0.3);
+  background: rgba(255, 247, 243, 0.82);
+}
+
+.control-help {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.clear-database-button,
+.clear-confirm-button {
+  width: fit-content;
+  border-color: rgba(142, 62, 48, 0.45);
+  background: rgba(142, 62, 48, 0.08);
+  color: #8e3e30;
+}
+
+.clear-confirm-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.clear-confirm-button {
+  background: #8e3e30;
+  color: #fff8f4;
+}
+
+.clear-cancel-button {
+  border-color: var(--stroke);
+  color: var(--muted);
 }
 
 .status-list {

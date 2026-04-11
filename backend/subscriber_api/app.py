@@ -12,6 +12,10 @@ from fastapi.responses import StreamingResponse
 
 from backend.common.config import SubscriberConfig
 from backend.common.events import EventValidationError, parse_event
+from backend.common.publisher_control import (
+    MOCK_PUBLISHER_CONTROL_TOPIC,
+    build_mock_publisher_control_payload,
+)
 from backend.subscriber_api.schemas import ControlStateUpdate
 from backend.subscriber_api.store import EventStore
 
@@ -63,9 +67,29 @@ class MqttIngestService:
             self._client.loop_stop()
             self._client.disconnect()
 
+    def publish_mock_publisher_enabled(self, enabled: bool) -> bool:
+        if self._client is None:
+            LOGGER.info("MQTT client is unavailable; mock publisher control command was not sent")
+            return False
+        result = self._client.publish(
+            MOCK_PUBLISHER_CONTROL_TOPIC,
+            build_mock_publisher_control_payload(enabled),
+            retain=True,
+        )
+        if getattr(result, "rc", 0) != 0:
+            LOGGER.warning("Mock publisher control command failed with rc=%s", result.rc)
+            return False
+        return True
+
     def _on_connect(self, client, _userdata, _flags, rc, _properties=None) -> None:
         if rc == 0:
             client.subscribe("doors/+/events")
+            control_state = self.store.get_control_state()
+            client.publish(
+                MOCK_PUBLISHER_CONTROL_TOPIC,
+                build_mock_publisher_control_payload(control_state["active_source_mode"] == "mock"),
+                retain=True,
+            )
             LOGGER.info("Connected to MQTT broker and subscribed to doors/+/events")
         else:
             LOGGER.error("Failed to connect to MQTT broker: rc=%s", rc)
@@ -125,6 +149,7 @@ def build_app(config: Optional[SubscriberConfig] = None, enable_mqtt_ingest: boo
         app.state.store = store
         app.state.broadcaster = broadcaster
         app.state.config = config
+        app.state.ingest_service = ingest_service
         try:
             yield
         finally:
@@ -166,6 +191,8 @@ def build_app(config: Optional[SubscriberConfig] = None, enable_mqtt_ingest: boo
             active_source_mode=payload.active_source_mode,
             baseline_occupancy=payload.baseline_occupancy,
         )
+        if payload.active_source_mode is not None:
+            ingest_service.publish_mock_publisher_enabled(payload.active_source_mode == "mock")
         await broadcaster.broadcast(
             build_stream_payload(store=store, event_type="control_state_updated")
         )
@@ -218,6 +245,13 @@ def build_app(config: Optional[SubscriberConfig] = None, enable_mqtt_ingest: boo
     @app.get("/api/summary")
     async def summary() -> Dict[str, Any]:
         return store.get_summary()
+
+    @app.post("/api/database/clear")
+    async def clear_database() -> Dict[str, Any]:
+        summary_payload = store.clear_runtime_telemetry()
+        payload = build_stream_payload(store=store, event_type="database_cleared")
+        await broadcaster.broadcast(payload)
+        return payload | {"summary": summary_payload}
 
     @app.get("/api/stream")
     async def stream() -> StreamingResponse:

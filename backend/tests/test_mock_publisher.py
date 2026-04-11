@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from backend.publisher_mock.main import MockDoorState, build_next_event
+from backend.publisher_mock.main import MockDoorState, MockPublisherControl, build_next_event
 
 
 class MockPublisherTests(unittest.TestCase):
@@ -18,7 +18,22 @@ class MockPublisherTests(unittest.TestCase):
             self.assertIn(event.direction, ("enter", "leave"))
             self.assertGreaterEqual(state.occupancy_by_door["door-a"], 0)
 
+    def test_control_payload_can_pause_and_resume_publisher(self) -> None:
+        control = MockPublisherControl()
+
+        self.assertTrue(control.apply_payload('{"enabled":false}'))
+        self.assertFalse(control.enabled)
+
+        self.assertTrue(control.apply_payload('{"enabled":true}'))
+        self.assertTrue(control.enabled)
+
+    def test_invalid_control_payload_is_ignored(self) -> None:
+        control = MockPublisherControl(enabled=True)
+
+        with self.assertLogs("publisher-mock", level="WARNING"):
+            self.assertFalse(control.apply_payload('{"enabled":"nope"}'))
+        self.assertTrue(control.enabled)
+
 
 if __name__ == "__main__":
     unittest.main()
-
