@@ -117,7 +117,9 @@ source .venv/bin/activate
 PYTHONPATH=. python -m backend.publisher_yolo.main
 ```
 
-`LINE_START` and `LINE_END` define the virtual doorway line. `LINE_BAND_PIXELS` widens that line into a more forgiving crossing zone, `YOLO_CROSSING_POINT` chooses whether crossing is measured from the person centroid or feet position, and `ENTER_WHEN` controls which side change counts as an `enter`.
+`LINE_START` and `LINE_END` define the virtual doorway line. `LINE_BAND_PIXELS` widens that line into a more forgiving crossing zone, `YOLO_CROSSING_POINT=center` measures crossings from the middle of the person box, `YOLO_CROSSING_POINT=bottom_center` measures from the feet position, and `ENTER_WHEN` controls which side change counts as an `enter`.
+The publisher also has a recovery layer for short YOLO tracking drops near the doorway. `YOLO_TRACKER` defaults to `botsort.yaml`, `TRACK_LOST_GRACE_FRAMES` controls how long a missing person can be recovered, `TRACK_MATCH_MAX_DISTANCE_PIXELS` controls how close a new track must be to the lost one, and `TRACK_EVENT_SUPPRESSION_FRAMES` prevents duplicate events from one physical crossing after an id swap.
+This makes the demo much more forgiving when YOLO briefly loses focus, but a single camera still cannot guarantee perfect counting under heavy occlusion or crowded doorway traffic.
 `.env.camera-publisher.example` is prefilled with the HTTP stream URL you already confirmed works in a browser.
 If your phone camera app uses HTTP Basic Auth, set `CAMERA_USERNAME` and `CAMERA_PASSWORD` in `.env.camera-publisher`. The publisher will inject those credentials into the stream URL automatically.
 Set `YOLO_DEBUG_PREVIEW=true` to open a local debug window that shows the live camera feed, YOLO boxes, track ids, centroids, and the configured crossing line. Press `q` in that window to stop the publisher.

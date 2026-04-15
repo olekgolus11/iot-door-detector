@@ -40,8 +40,17 @@ PYTHONPATH=. python3 -m backend.publisher_yolo.main
 For camera calibration, the YOLO publisher supports:
 - `LINE_START` and `LINE_END` for the virtual doorway line
 - `LINE_BAND_PIXELS` for a wider crossing zone
-- `YOLO_CROSSING_POINT=bottom_center` to track the feet position instead of the box center
+- `YOLO_CROSSING_POINT=center` to track the middle of the person box
+- `YOLO_CROSSING_POINT=bottom_center` to track the feet position instead
 - `TRACK_COOLDOWN_FRAMES` to avoid duplicate events from one crossing
+- `YOLO_TRACKER=botsort.yaml` to choose the Ultralytics tracker config
+- `TRACK_LOST_GRACE_FRAMES` to recover a person after a short YOLO id drop
+- `TRACK_MATCH_MAX_DISTANCE_PIXELS` to limit how far a recovered id may jump
+- `TRACK_EVENT_SUPPRESSION_FRAMES` to suppress duplicate events after one physical crossing
+
+The recovery settings are tuned for one person crossing at a time. They greatly reduce missed
+events from brief tracking drops, but crowded or heavily occluded scenes still need better camera
+placement or an additional sensor for near-perfect counting.
 
 ## Useful API Endpoints
 - `GET /api/control-state`

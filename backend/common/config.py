@@ -37,7 +37,13 @@ def with_basic_auth(url: str, username: str, password: str) -> str:
         credentials = f"{credentials}:{quote(password, safe='')}"
 
     return urlunsplit(
-        (parts.scheme, f"{credentials}@{parts.netloc}", parts.path, parts.query, parts.fragment)
+        (
+            parts.scheme,
+            f"{credentials}@{parts.netloc}",
+            parts.path,
+            parts.query,
+            parts.fragment,
+        )
     )
 
 
@@ -62,7 +68,9 @@ class SubscriberConfig:
 class MockPublisherConfig:
     mqtt: MqttConfig = MqttConfig(client_id=get_env("MQTT_CLIENT_ID", "publisher-mock"))
     door_ids: tuple[str, ...] = tuple(
-        item.strip() for item in get_env("MOCK_DOOR_IDS", "door-a").split(",") if item.strip()
+        item.strip()
+        for item in get_env("MOCK_DOOR_IDS", "door-a").split(",")
+        if item.strip()
     )
     min_interval_seconds: float = get_float_env("MOCK_MIN_INTERVAL", 0.75)
     max_interval_seconds: float = get_float_env("MOCK_MAX_INTERVAL", 2.5)
@@ -81,12 +89,20 @@ class YoloPublisherConfig:
     door_id: str = get_env("DOOR_ID", "door-a")
     model_name: str = get_env("YOLO_MODEL", "yolov8n.pt")
     confidence_threshold: float = get_float_env("YOLO_CONFIDENCE", 0.35)
+    tracker_config: str = get_env("YOLO_TRACKER", "botsort.yaml")
     enter_when: str = get_env("ENTER_WHEN", "negative_to_positive")
     line_start: str = get_env("LINE_START", "100,100")
     line_end: str = get_env("LINE_END", "540,100")
     line_band_pixels: int = get_int_env("LINE_BAND_PIXELS", 80)
     track_cooldown_frames: int = get_int_env("TRACK_COOLDOWN_FRAMES", 15)
-    crossing_point: str = get_env("YOLO_CROSSING_POINT", "bottom_center")
+    track_lost_grace_frames: int = get_int_env("TRACK_LOST_GRACE_FRAMES", 20)
+    track_match_max_distance_pixels: int = get_int_env(
+        "TRACK_MATCH_MAX_DISTANCE_PIXELS", 160
+    )
+    track_event_suppression_frames: int = get_int_env(
+        "TRACK_EVENT_SUPPRESSION_FRAMES", 30
+    )
+    crossing_point: str = get_env("YOLO_CROSSING_POINT", "center")
     publisher_id: str = get_env("PUBLISHER_ID", "camera-publisher")
     debug_preview: bool = get_bool_env("YOLO_DEBUG_PREVIEW", False)
     debug_log_detections: bool = get_bool_env("YOLO_DEBUG_LOG_DETECTIONS", True)
