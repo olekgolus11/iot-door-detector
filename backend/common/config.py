@@ -89,7 +89,7 @@ class YoloPublisherConfig:
     door_id: str = get_env("DOOR_ID", "door-a")
     model_name: str = get_env("YOLO_MODEL", "yolov8n.pt")
     confidence_threshold: float = get_float_env("YOLO_CONFIDENCE", 0.35)
-    tracker_config: str = get_env("YOLO_TRACKER", "botsort.yaml")
+    tracker_config: str = get_env("YOLO_TRACKER", "backend/publisher_yolo/botsort_stable.yaml")
     enter_when: str = get_env("ENTER_WHEN", "negative_to_positive")
     line_start: str = get_env("LINE_START", "100,100")
     line_end: str = get_env("LINE_END", "540,100")

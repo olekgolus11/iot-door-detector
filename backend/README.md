@@ -43,7 +43,7 @@ For camera calibration, the YOLO publisher supports:
 - `YOLO_CROSSING_POINT=center` to track the middle of the person box
 - `YOLO_CROSSING_POINT=bottom_center` to track the feet position instead
 - `TRACK_COOLDOWN_FRAMES` to avoid duplicate events from one crossing
-- `YOLO_TRACKER=botsort.yaml` to choose the Ultralytics tracker config
+- `YOLO_TRACKER=backend/publisher_yolo/botsort_stable.yaml` to keep person ids more stable than the stock tracker config
 - `TRACK_LOST_GRACE_FRAMES` to recover a person after a short YOLO id drop
 - `TRACK_MATCH_MAX_DISTANCE_PIXELS` to limit how far a recovered id may jump
 - `TRACK_EVENT_SUPPRESSION_FRAMES` to suppress duplicate events after one physical crossing

@@ -1,0 +1,28 @@
+# Stable doorway tracking settings for the YOLO publisher.
+#
+# The stock BoT-SORT defaults are tuned broadly. This project cares more about
+# keeping one doorway person on the same ID than reacting quickly to new people.
+
+tracker_type: botsort
+
+# Keep matching through confidence dips instead of dropping the active track.
+track_high_thresh: 0.25
+track_low_thresh: 0.05
+
+# Require stronger evidence before minting a brand-new ID.
+new_track_thresh: 0.75
+
+# Keep lost tracks alive longer. At 30 FPS, 90 frames is about 3 seconds.
+track_buffer: 90
+
+# Higher values are more permissive in Ultralytics' tracker matching.
+match_thresh: 0.90
+fuse_score: true
+
+# BoT-SORT camera motion compensation.
+gmc_method: sparseOptFlow
+
+# ReID is off to avoid extra model downloads and runtime cost.
+proximity_thresh: 0.5
+appearance_thresh: 0.25
+with_reid: false
